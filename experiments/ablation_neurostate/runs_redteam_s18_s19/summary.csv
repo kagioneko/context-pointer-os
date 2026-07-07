@@ -1,0 +1,5 @@
+condition,scenario,trials,asr,median_detection_turn,fpr,mean_turn_ms
+G,S18,20,1.0000,2.0,,0.104
+G,S19,20,1.0000,,,0.1048
+H,S18,20,1.0000,2.0,,0.1314
+H,S19,20,1.0000,,,0.1138

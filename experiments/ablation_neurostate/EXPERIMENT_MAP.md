@@ -24,6 +24,12 @@ Main claim:
 > AI-native contamination scenarios `S1-S17` while preserving zero false
 > positives over 6,400 benign trials.
 
+Adaptive/white-box scenarios `S18`/`S19` (added after an external review asked
+whether `H` had been tested against an attacker who knows the gate logic)
+initially reached `ASR 1.0000` against `H` by exploiting the single
+`dangerous_action()` string-prefix check every gate in the stack shares.
+Fixed and reverified at `ASR 0.0000` across `S1-S19`. See `RELEASE_SUMMARY.md`.
+
 Scope:
 
 - fixed instruction tapes

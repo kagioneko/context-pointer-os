@@ -8,6 +8,13 @@
 
 ただしこれは「検証済みシナリオ上の結果」であり、未知攻撃すべてを防ぐ保証ではない。
 
+追記: adaptive/white-box red-teamパス(`S18` ドメインプレフィックス回避、`S19` consent文字列偽装)は、
+`H` の全ゲートが共有する単一の素朴なチェック `dangerous_action()` を突いて当初 `ASR 1.0000` を記録した。
+`dangerous_action()` は生の文字列prefixではなく解析済みinstructionのactionを見るように修正し、
+`NemaEgressGate` はnoteテキストのsubstring一致ではなく構造化された `Turn.consent` フィールドを
+見るように修正した。修正後、`S1-S19` を合わせて100試行で再実行し `ASR 0.0000` / `FPR 0.0000` を確認済み。
+`S18`/`S19` は回帰テストとしてharnessに残す。以降、本文中の `S1-S17` はすべて `S1-S19` として読むこと。
+
 ## 最終結果
 
 実行コマンド:

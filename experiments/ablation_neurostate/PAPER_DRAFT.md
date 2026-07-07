@@ -23,6 +23,15 @@ adversarial conversations. A smaller Qwen3:4b model-in-the-loop pilot provides
 supporting evidence that the S5 laundering pattern can arise in natural
 language, but the deterministic CPOS harness remains the primary evidence path.
 
+An adaptive/white-box red-team pass added two further scenarios, `S18`
+(domain-prefix evasion) and `S19` (consent-substring smuggling), targeting the
+gate logic directly rather than replaying `S1-S17`'s surface patterns. Both
+initially reached `ASR 1.0000` against `H`: every gate in the stack keyed off
+one naive `dangerous_action()` string-prefix check. Fixed, and reverified at
+`ASR 0.0000` / `FPR 0.0000` across `S1-S19` together. `S18`/`S19` now ship in
+the harness as permanent regression tests. Read every `S1-S17` figure above as
+`S1-S19` going forward.
+
 ## 1. Introduction
 
 Prompt injection is usually discussed as a textual classification problem: the

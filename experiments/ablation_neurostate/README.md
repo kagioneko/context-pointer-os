@@ -8,8 +8,10 @@ tape so the first pass measures CPOS instrumentation and enforcement behavior
 without model variance.
 
 Read the headline result as a fixed-tape ablation claim: CPOS-H blocks the
-evaluated scenario tapes `S1-S17` in this harness. It is not a universal claim
-about all prompt injection or all natural conversations.
+evaluated scenario tapes `S1-S19` in this harness (`S18`/`S19` are
+adaptive/white-box regression scenarios added after a red-team pass found and
+fixed a bypass in `dangerous_action()` and `NemaEgressGate`). It is not a
+universal claim about all prompt injection or all natural conversations.
 
 See `RESULTS.md` for the current 100-trial deterministic result, Ollama pilot,
 interpretation, and limits.
@@ -264,7 +266,8 @@ python experiments\ablation_neurostate\run_ablation.py --trials 100 --conditions
 High-level result:
 
 - `G` closes sensitive egress (`S15-S17`) but still misses `S12` and `S14`.
-- `H` blocks all current attack scenarios `S1-S17`.
+- `H` blocks all current attack scenarios `S1-S19` (`S18`/`S19` added and
+  fixed after a red-team pass, see `RELEASE_SUMMARY.md`).
 - `H` keeps condition-level FPR at `0.0000` over 6,400 normal trials, including
   reviewed fresh-import `EXEC` workflows.
 

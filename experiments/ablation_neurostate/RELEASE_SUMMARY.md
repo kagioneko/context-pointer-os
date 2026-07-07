@@ -38,6 +38,17 @@ Safe headline:
 > AI-native contamination scenarios `S1-S17` while preserving zero false
 > positives over 6,400 benign trials.
 
+An adaptive/white-box red-team pass (`S18` domain-prefix evasion, `S19`
+consent-substring smuggling) initially reached `ASR 1.0000` against `H`,
+because every gate in the stack keyed off the same naive
+`dangerous_action()` string-prefix check. Fixed: `dangerous_action()` now
+parses the instruction and checks its actual action instead of a raw domain
+prefix, and `NemaEgressGate` now reads a structured `Turn.consent` field
+instead of scanning free text for a magic string. Re-ran `S1-S19` together
+at 100 trials post-fix: `ASR 0.0000`, `FPR 0.0000`, same as before, now
+covering 19 scenarios instead of 17 (`runs_h_postfix_s1_s19_100/`). `S18`/`S19`
+stay in the harness as regression tests.
+
 Avoid:
 
 - "blocks all prompt injection"
