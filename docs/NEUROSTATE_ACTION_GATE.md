@@ -136,6 +136,18 @@ be executed?
 This makes the gate token-efficient. Routine turns stay on the cheap path, and
 an expensive LLM judge can be reserved for ambiguous escalations.
 
+## Scope Note (2026-07-15)
+
+This gate uses the **control/injection direction** of NeuroState: a locally
+tracked state (`ctx7`) gates the next action before it runs. It does not use
+the **measurement/detection direction** (scoring a completed response into a
+6D vector to classify success/failure after the fact), which paper2
+(NeuroState-R) showed collapses to a 3-value classifier with zero added
+discriminative power. The two directions are independent; this gate was never
+affected by that finding. See
+`neurostate-engine/docs/measurement_vs_control_scope.md` for the full
+distinction.
+
 ## Next Validation
 
 - Benign `EXEC` workflows under mild state drift already passed in the harness:
