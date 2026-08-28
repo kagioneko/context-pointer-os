@@ -80,6 +80,7 @@ class CPOS:
         self.acl = AccessControlList()
         self.storage = StorageManager(base_dir=workspace)
         self.gateways = GatewayManager() # [CPOS v0.4] Gateway Management
+        self.gateways.attach_registry(self.registry) # Sensor events -> kernel event log
         self.store = ContextStore(self.registry, self.storage)
         self.store.gateways = self.gateways # Give store access to gateways
         self.review_credential_target = None

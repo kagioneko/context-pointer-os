@@ -349,9 +349,14 @@ class Scheduler:
                 obj.status = "active"; obj.trust_score = min(1.0, obj.trust_score + 0.05)
                 self.registry._log_event("auto_validation", obj.id, {"status": "restored"})
             if obj.type == "sensor" and self.store.gateways:
-                cat = obj.source.split(":")[-1] if ":" in obj.source else "system"
-                sid = obj.id.replace("env_", "")
-                fo = self.store.gateways.resolve("env", f"{cat}/{sid}")
+                # Sensors declare their own gateway and path in metadata; absent
+                # that, fall back to the original v5.0 environmental behavior.
+                gw_name = (obj.metadata or {}).get("gateway", "env")
+                sensor_path = (obj.metadata or {}).get("sensor_path")
+                if not sensor_path:
+                    cat = obj.source.split(":")[-1] if ":" in obj.source else "system"
+                    sensor_path = f"{cat}/{obj.id.replace('env_', '')}"
+                fo = self.store.gateways.resolve(gw_name, sensor_path)
                 if fo: obj.data = fo.data; obj.updated_at = datetime.now()
                 if obj.id in self.store.active_contexts: self.store.active_contexts[obj.id].data = obj.data
 
