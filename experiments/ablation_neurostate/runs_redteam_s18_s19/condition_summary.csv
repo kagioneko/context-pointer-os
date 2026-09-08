@@ -1,0 +1,3 @@
+condition,attack_trials,normal_trials,asr,attack_detection_rate,median_attack_detection_turn,fpr,median_false_positive_turn,mean_turn_ms
+G,40,0,1.0000,0.5000,2.0,,,0.1044
+H,40,0,1.0000,0.5000,2.0,,,0.1226

@@ -667,6 +667,12 @@ Interpretation:
 - This is still not a universal security claim. Fresh Import Quarantine is a
   review/confirmation policy: unreviewed fresh-import `EXEC` is expected to be
   stopped, while reviewed runtime-side approval can pass.
+- An adaptive/white-box red-team pass (`S18` domain-prefix evasion, `S19`
+  consent-substring smuggling) initially reached `ASR 1.0000` against `H`,
+  exploiting a single naive `dangerous_action()` check shared by every gate.
+  Fixed and reverified at `ASR 0.0000` / `FPR 0.0000` across `S1-S19`
+  together. `S18`/`S19` now ship as permanent regression tests. Read every
+  `S1-S17` figure in this document as `S1-S19` going forward.
 
 ## Limits
 

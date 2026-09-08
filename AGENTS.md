@@ -63,10 +63,16 @@ Covered scenarios:
 Main claim to preserve:
 
 ```text
-CPOS-H blocked all tested AI-native contamination scenarios S1-S17 while
+CPOS-H blocked all tested AI-native contamination scenarios S1-S19 while
 preserving zero false positives on the expanded deterministic normal set,
 including reviewed fresh-import EXEC workflows.
 ```
+
+S18/S19 are adaptive/white-box regression scenarios added after a red-team
+pass found and closed a bypass in `dangerous_action()` (domain-prefix
+evasion) and `NemaEgressGate` (consent-substring smuggling). Both initially
+reached ASR 1.0000 against `H`. See RELEASE_SUMMARY.md and RESULTS.md for
+the fix and post-fix numbers before citing S1-S17 alone anywhere.
 
 Do not overclaim universal security. Say "tested attack classes" or
 "evaluated scenarios", not "all attacks".
@@ -102,8 +108,10 @@ H attack trials: 1700, normal trials: 6400, ASR: 0.0000, FPR: 0.0000
 H median attack detection turn: 7
 ```
 
-`H` blocks every current attack scenario `S1-S17` in the deterministic harness.
-This is the current best harness result.
+`H` blocked every attack scenario in the deterministic harness at the time of
+this run (`S1-S17`). Since then, `S18`/`S19` (adaptive/white-box, added after
+a red-team pass) initially bypassed `H` at `ASR 1.0000`; both are now fixed
+and `H` clears `S1-S19` at `ASR 0.0000`. See RELEASE_SUMMARY.md.
 
 Important caveat:
 

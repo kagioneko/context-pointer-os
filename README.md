@@ -143,11 +143,14 @@ For the interactive shell, pass `--approval-policy-config configs/neurostate_act
 - [Project Wiki (docs/)](docs/) - Technical evolution and API details.
 
 ### ✅ Verification
-The core integrity is verified via 34 unit tests:
+The core integrity is verified via 54 unit tests:
 ```bash
 # Using pytest from the virtual environment
 pytest tests/
-# Result: 34 passed in 0.25s
+# Result: 53 passed, 1 failed in 0.45s
+# (the failure is tests/cpos_singularity_test.py::test_singularity_v12, which
+# hardcodes a workspace path from a different machine and is unrelated to
+# core logic)
 ```
 
 ---

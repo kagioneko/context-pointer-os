@@ -205,3 +205,11 @@ contract.
 
 Do not try to productize every branch at once. Keep researching broadly, then
 let product work pick narrow surfaces from the research stack.
+
+An adaptive/white-box red-team pass (`experiments/ablation_neurostate` `S18`,
+`S19`) found every gate in the flagship `H` stack keyed off one naive string
+check, and reached 100% attack success once that check was bypassed. Fixed
+and reverified at 0% across `S1-S19`. Still keep the "AI agent firewall"
+pitch scoped to "blocks the evaluated fixed-tape scenario set," not
+"prevents unsafe execution" unqualified. One closed gap is not a guarantee
+there are no others.
