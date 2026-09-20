@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 from cpos.kernel import CPOS
@@ -10,12 +11,11 @@ def main():
     print("================================================")
     
     # 1. Initialization
-    workspace = "/tmp/cpos_v10"
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_")
     os.makedirs(workspace, exist_ok=True)
-    os.system(f"rm -rf {workspace}/*") # Clean start
     
     os_kernel = CPOS(workspace=workspace, token_limit=3000)
-    print(f"Kernel Key: {os_kernel.kernel_key}")
+    print("Kernel key generated (value withheld).")
 
     # 2. Registering Core Contexts
     os_kernel.registry.register(ContextObject(

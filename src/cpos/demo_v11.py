@@ -56,7 +56,6 @@ def v11_demo():
 
     # 3. Git Driver Test
     print("\n[V1.1: Git Driver Test]")
-    # Correct path: /home/mayutama/context-pointer-os
     base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print(f"Mounting CPOS repo at: {base_path}")
     os_kernel.step(f">MEM:DEV #ctx0 !9 | mount=repo path={base_path}")

@@ -1,6 +1,7 @@
 import json
 import uuid
 import copy
+from pathlib import Path
 from typing import Dict, Any, Optional, List
 from .registry import ContextObject
 from .storage import DeviceDriver
@@ -139,16 +140,21 @@ class SourceGateway(ExternalGateway):
     Mounts actual .py files as context pointers for self-refactoring."""
     
     def fetch_object(self, path: str) -> Optional[ContextObject]:
-        # path format: src/cpos/scheduler.py
-        import os
-        base = "/home/mayutama/context-pointer-os"
-        full_path = os.path.join(base, path)
-        
-        if os.path.exists(full_path) and full_path.endswith(".py"):
-            with open(full_path, "r") as f:
-                code = f.read()
-            
-            file_name = os.path.basename(path)
+        # Source access is confined to this installed project tree.
+        base = Path(__file__).resolve().parents[2]
+        candidate = Path(path)
+        if candidate.is_absolute():
+            return None
+        full_path = (base / candidate).resolve()
+        try:
+            full_path.relative_to(base)
+        except ValueError:
+            return None
+
+        if full_path.is_file() and full_path.suffix == ".py":
+            code = full_path.read_text(encoding="utf-8")
+
+            file_name = full_path.name
             return ContextObject(
                 id=f"sys_src_{file_name.replace('.', '_')}",
                 type="system_code",

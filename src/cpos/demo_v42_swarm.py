@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 from cpos.kernel import CPOS
@@ -8,9 +9,8 @@ def main():
     print("   CONTEXT POINTER OS v4.2 - Swarm Dispatch      ")
     print("================================================")
     
-    workspace = "/tmp/cpos_v42"
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_")
     os.makedirs(workspace, exist_ok=True)
-    os.system(f"rm -rf {workspace}/*")
     
     os_kernel = CPOS(workspace=workspace)
     

@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 import time
@@ -9,9 +10,8 @@ def main():
     print("   CONTEXT POINTER OS v5.1 - Autonomic Evolution ")
     print("================================================")
     
-    workspace = "/tmp/cpos_v51"
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_")
     os.makedirs(workspace, exist_ok=True)
-    os.system(f"rm -rf {workspace}/*")
     
     os_kernel = CPOS(workspace=workspace)
     

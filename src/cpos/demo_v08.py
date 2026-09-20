@@ -13,7 +13,7 @@ def v08_demo():
     
     # Generate Kernel Key
     key = registry.generate_kernel_key()
-    print(f"Kernel Key Generated: {key}")
+    print("Kernel key generated (value withheld).")
     
     store = ContextStore(registry)
     scheduler = Scheduler(store)

@@ -1,24 +1,22 @@
 
 import sys
 import os
-import shutil
+import tempfile
+from pathlib import Path
 import time
 from datetime import datetime
 
 # Setup paths
-PROJECT_ROOT = "/home/mayutama/context-pointer-os"
-sys.path.append(os.path.join(PROJECT_ROOT, "src"))
-sys.path.append("/home/mayutama") # For ait_firewall
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT / "src"))
+sys.path.append(str(PROJECT_ROOT.parent)) # Optional sibling ait_firewall
 
 from cpos.kernel import CPOS
 from cpos.registry import ContextObject
 
 def test_singularity_v12():
-    workspace_a = "/home/mayutama/.gemini/tmp/mayutama/cpos_node_a"
-    workspace_b = "/home/mayutama/.gemini/tmp/mayutama/cpos_node_b"
-    for ws in [workspace_a, workspace_b]:
-        if os.path.exists(ws): shutil.rmtree(ws)
-        os.makedirs(ws)
+    workspace_a = tempfile.mkdtemp(prefix="cpos_node_a_")
+    workspace_b = tempfile.mkdtemp(prefix="cpos_node_b_")
 
     print("\n=== [CPOS v12.0 Singularity Integration Test] ===")
     
