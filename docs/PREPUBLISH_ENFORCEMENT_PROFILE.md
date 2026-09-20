@@ -43,8 +43,8 @@ The gate consumes metadata-only evidence records. Raw diffs, logs, secrets, toke
 
 Required pre-confirmation evidence for a candidate action:
 
-- `git_snapshot`: repository ID, branch, HEAD SHA, clean/dirty, ahead/behind, timestamp
-- `change_identity`: base SHA, head SHA, diff hash, changed-file count
+- `git_snapshot`: gate-owned record from a live sensor call, containing allowlisted repository ID, quoted/untrusted branch, full 40-hex HEAD SHA, clean/dirty, ahead/behind, confidence, and fresh timestamp
+- `change_identity`: base SHA, full head SHA, diff hash, changed-file count
 - `test_summary`: command profile ID, pass/fail/error counts, exit status, head SHA, timestamp
 - `secret_scan_summary`: scanner profile/version, findings count by severity, head SHA, timestamp
 - `independent_review`: reviewer class, PASS/FAIL, reviewed head SHA and artifact hash, timestamp
@@ -54,7 +54,7 @@ Required execution-authorization evidence, created only after the candidate pass
 
 - `human_approval`: candidate ID, approval ID, action, repository ID, destination/ref, base/head SHA, diff hash, approved/expiry time, and an authenticated human-authority reference. The reference is metadata, never a credential or reusable secret.
 
-Every record must use an allowlisted typed schema. Unknown keys fail closed. Repository-controlled text must be marked untrusted or represented by an opaque ID. Source pointers must be logical allowlisted URIs, never absolute host paths.
+Every record must use a static allowlisted typed schema with no runtime registration API. Unknown keys fail closed. Repository-controlled text must be marked untrusted or represented by an opaque ID. Source pointers must be logical allowlisted URIs, never absolute host paths. Evidence for each check must come from its specific contracted source; a Git sensor event cannot claim `tests_passed` or `prepublish_ok`.
 
 ## 5. Candidate action schema
 
@@ -84,6 +84,7 @@ Validation requirements:
 - destination is an opaque configured ID, not a credential-bearing URL
 - candidate TTL is at most 15 minutes
 - all evidence binds to the same repo/head/diff identity
+- both `repo_id` and `destination_id` resolve through a local closed allowlist to canonical sanitized repository coordinates; matching local nicknames alone is insufficient
 - candidate becomes invalid after any relevant filesystem, index, HEAD, ref, test-profile, scan-profile, review artifact, or policy change
 
 ## 6. Gate decision schema
@@ -171,7 +172,8 @@ Rules:
 - approval for push does not authorize tag/release
 - approval for prerelease does not authorize final release
 - a failed execution cannot be retried under the same approval unless the policy explicitly creates a new candidate and asks again
-- the second evaluation rechecks repository identity, evidence TTLs, destination/ref, approval binding, and expiry immediately before one atomic approval consume
+- the second evaluation performs a new live snapshot and rechecks repository identity, evidence TTLs, destination/ref, approval binding, and expiry immediately before one atomic approval consume
+- historical Task Tape sensor events are never used to prove freshness; unchanged-state deduplication means their timestamps may legitimately be old
 
 ## 8. Decision rules
 
@@ -183,6 +185,7 @@ The gate returns `deny` or `stale` if any condition holds:
 - evidence was generated for a different HEAD or diff hash
 - evidence age exceeds its configured TTL at evaluation time
 - worktree, index, HEAD, or relevant remote-tracking identity changed since evidence generation
+- evidence with `confidence < 1.0` is presented as non-binding context and is never sufficient for an execution decision
 - secret scanner reports unresolved findings
 - independent review is not PASS/OK
 - human instruction is ambiguous, stale, shorthand-only for P2/P3, or targets another action
@@ -192,7 +195,9 @@ The gate returns `deny` or `stale` if any condition holds:
 
 `allow_for_human_confirmation` means only that the system may show a concrete confirmation prompt. It never means execute.
 
-Test and secret-scan evidence TTL is at most 30 minutes. Independent-review evidence remains usable only while its head SHA, diff hash, artifact hash, policy version, and test/scan profiles match. Destination IDs live in a local closed allowlist mapping opaque public IDs to sanitized remote coordinates and an executor profile. Candidates and Task Tape never contain credential-bearing URLs.
+Test and secret-scan evidence TTL is at most 30 minutes. Independent-review evidence remains usable only while its head SHA, diff hash, artifact hash, policy version, and test/scan profiles match. Fresh Git state comes from a gate-owned record produced by a live `GitGateway.snapshot()` call, not from the deduplicated Task Tape history. The gate uses one trusted UTC clock for persisted timestamps and one monotonic clock for in-process elapsed-time checks.
+
+Repository and destination IDs live in a local closed allowlist mapping opaque IDs to canonical sanitized repository coordinates and an executor profile. Candidates and Task Tape never contain credential-bearing URLs. Because the read-only Git sensor intentionally makes no network call, ahead/behind evidence remains advisory (`confidence: 0.8`). A future Phase 2 executor must perform a live remote check such as an allowlisted fetch or `ls-remote` immediately before atomic approval consumption; a mismatch invalidates the candidate.
 
 ## 9. Human confirmation prompt
 
@@ -200,7 +205,7 @@ The prompt must display fixed metadata:
 
 - action name
 - repository/destination ID
-- branch/ref
+- branch/ref, rendered inside a fixed quoted/escaped data field with a hard display bound; untrusted text can never alter prompt structure
 - abbreviated base and head SHA
 - changed-file count and diff hash prefix
 - test/scan/review status and freshness
@@ -226,7 +231,7 @@ Minimum Phase 1 tests:
 11. “review approved” reused as “push approved” — denied
 12. prerelease approval reused for final release — denied
 13. shorthand used for tag/release/publication — confirmation required
-14. attacker-crafted sensor event claiming all checks passed — rejected unless covered by the existing signed scheduler/kernel journal or a separately reviewed provenance mechanism
+14. attacker-crafted sensor event claiming all checks passed — rejected unless it comes from the exact static contract for that check and is covered by the existing signed scheduler/kernel journal or a separately reviewed provenance mechanism; Git sensor schemas contain no test/prepublish status field
 15. unsigned Task Tape event consumed as execution authority — denied; current `registry.audit_log` sensor records are evidence only
 16. missing/failed scanner — fail closed, not “zero findings”
 17. symlink/submodule/worktree ambiguity — unsupported or explicit denial in Phase 1
@@ -291,6 +296,15 @@ Bind approval to destination ID, payload hash, visibility, scheduled time, and k
 ### Infrastructure profile
 
 Classify observe/read, reversible change, destructive change, and forbidden action. Port opening requires timed auto-close plus notification. User creation/deletion and systemd stop/delete require prior human confirmation. `authorized_keys` modification is permanently denied.
+
+## 14.1 Git sensor alignment decisions
+
+- The Git sensor should emit a full 40-hex `head_sha`; the gate must not bind approval to `head_short`. This is a reviewed contract addition for #6 or a follow-up, not an inferred field.
+- The gate owns freshness evidence by taking a live snapshot for candidate creation and again at pre-execution revalidation. Task Tape remains deduplicated history.
+- `ahead`/`behind` values from an already-fetched upstream ref are advisory. Only a Phase 2 live remote check can establish current fast-forward safety.
+- Local `repo_id` and remote `destination_id` use the same closed-allowlist principle and resolve to canonical repository coordinates.
+- Git, test/prepublish, candidate, decision, approval, and fake-executor payloads each require immutable static contracts with exact field sets and no mutable registration API.
+- Branch/ref values remain visible for human review but are rendered only as quoted, bounded, untrusted data.
 
 ## 15. Owner decisions captured
 
