@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 from cpos.kernel import CPOS
@@ -9,9 +10,8 @@ def main():
     print("   CONTEXT POINTER OS v2.3 - Exchange Demo      ")
     print("================================================")
     
-    workspace = "/tmp/cpos_v23"
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_")
     os.makedirs(workspace, exist_ok=True)
-    os.system(f"rm -rf {workspace}/*")
     
     os_kernel = CPOS(workspace=workspace)
     os_kernel.scheduler.retrieval_policy.allowed_context_types.extend(["security", "pointer_exchange", "message"])

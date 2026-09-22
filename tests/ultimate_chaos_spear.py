@@ -2,19 +2,19 @@
 import sys
 import os
 import time
-import shutil
+import tempfile
+from pathlib import Path
 
 # Setup paths
-sys.path.append("/home/mayutama/context-pointer-os/src")
-sys.path.append("/home/mayutama")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT / "src"))
+sys.path.append(str(PROJECT_ROOT.parent))
 
 from cpos.kernel import CPOS
 from cpos.registry import ContextObject
 
 def run_chaos_test():
-    workspace = "/home/mayutama/.gemini/tmp/mayutama/cpos_chaos_lab"
-    if os.path.exists(workspace): shutil.rmtree(workspace)
-    os.makedirs(workspace)
+    workspace = tempfile.mkdtemp(prefix="cpos_chaos_")
 
     kernel = CPOS(workspace=workspace)
     print("\n" + "="*60)

@@ -1,20 +1,18 @@
 
 import sys
 import os
-import shutil
+import tempfile
+from pathlib import Path
 
 # Setup paths
-PROJECT_ROOT = "/home/mayutama/context-pointer-os"
-sys.path.append(os.path.join(PROJECT_ROOT, "src"))
-sys.path.append("/home/mayutama") # For ait_firewall
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT / "src"))
+sys.path.append(str(PROJECT_ROOT.parent)) # Optional sibling ait_firewall
 
 from cpos.kernel import CPOS
 
 def test_omega_security():
-    workspace = "/home/mayutama/.gemini/tmp/mayutama/cpos_omega_test"
-    if os.path.exists(workspace):
-        shutil.rmtree(workspace)
-    os.makedirs(workspace)
+    workspace = tempfile.mkdtemp(prefix="cpos_omega_")
 
     print("\n=== [CPOS Omega Integration Test] ===")
     kernel = CPOS(workspace=workspace)

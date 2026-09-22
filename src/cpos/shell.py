@@ -5,8 +5,10 @@ import argparse
 if __package__ in (None, ""):
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from cpos.kernel import CPOS
+    from cpos.registry import ContextObject
 else:
     from .kernel import CPOS
+    from .registry import ContextObject
 
 class CognitiveShell:
     """[CPOS v3.0] The 'Interactive Kernel Interface'. 
@@ -66,6 +68,9 @@ class CognitiveShell:
                 else:
                     print(f"\n{BOLD}\033[91m[KERNEL ERROR]{RESET} {res.get('result') or res.get('code')}\n")
                     
+            except EOFError:
+                print("\nInput closed.")
+                break
             except KeyboardInterrupt:
                 print("\nInterrupted.")
                 break
@@ -93,10 +98,10 @@ def main():
     args = parser.parse_args()
 
     workspace = args.workspace
+    # A shell workspace may contain durable state selected by the user.
+    # Creating the directory is safe; silently deleting its contents is not.
     os.makedirs(workspace, exist_ok=True)
-    # Clear old data
-    for f in os.listdir(workspace): os.remove(os.path.join(workspace, f))
-    
+
     kernel = CPOS(
         workspace,
         node_id=args.node_id,
@@ -105,7 +110,6 @@ def main():
     )
     
     # Pre-register some fun personas for the user to play with
-    from .registry import ContextObject
     kernel.registry.register(ContextObject(
         id="persona_coder", type="persona", title="Python Expert", summary="Coding bot", data="expert_coder"
     ))

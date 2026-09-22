@@ -129,8 +129,12 @@ class Scheduler:
         self.current_persona: Optional[str] = None
         self.auditor_alerts: List[str] = [] 
         
-        # Initialize Journal Integrity
-        self.journal_guard = JournalIntegrity(self.registry.kernel_key or "default_secret")
+        # Initialize Journal Integrity from a per-registry key.  Scheduler is
+        # also constructed directly by tests and embedders, so make the safe
+        # key-order invariant local instead of relying on CPOS to do it first.
+        if self.registry.kernel_key is None:
+            self.registry.generate_kernel_key()
+        self.journal_guard = JournalIntegrity(self.registry.kernel_key)
 
     def load_approval_policy_config(self, config_or_path: Any) -> ApprovalPolicy:
         if isinstance(config_or_path, dict):
@@ -538,9 +542,19 @@ class Scheduler:
                 elif obj and obj.trust_score < 1.0: status = "error"; result = "ERR_LOW_TRUST"
                 elif obj and obj.type == "system_code":
                     try:
-                        fp = obj.source.replace("filesystem:", "")
-                        full_fp = os.path.join("/home/mayutama/context-pointer-os", fp)
-                        with open(full_fp, "w") as f: f.write(obj.data)
+                        if not obj.source.startswith("filesystem:"):
+                            raise ValueError("system_code source must use filesystem:")
+                        fp = obj.source.removeprefix("filesystem:")
+                        if not fp or os.path.isabs(fp):
+                            raise ValueError("rewrite path must be workspace-relative")
+
+                        workspace = os.path.realpath(self.store.storage.base_dir)
+                        full_fp = os.path.realpath(os.path.join(workspace, fp))
+                        if os.path.commonpath([workspace, full_fp]) != workspace:
+                            raise ValueError("rewrite path escapes workspace")
+
+                        with open(full_fp, "w", encoding="utf-8") as f:
+                            f.write(obj.data)
                         result = f"DNA Rewrite Success: {fp}"
                     except Exception as e: status = "error"; result = f"REWRITE_FAILED: {str(e)}"
                 else: status = "error"; result = "ERR_NOT_SYSTEM_CODE"

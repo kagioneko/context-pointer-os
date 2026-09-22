@@ -14,10 +14,7 @@ from typing import Any, List, Optional
 from cryptography.fernet import Fernet
 
 # [AIT Firewall v11.0 Integration]
-import sys
 import os
-# Adding home to path to find ait_firewall module
-sys.path.append("/home/mayutama")
 try:
     from ait_firewall.runtime import AITFirewallRuntime, DefenseProfile
 except ModuleNotFoundError:
@@ -106,7 +103,10 @@ class CPOS:
             self.scheduler.load_approval_policy_config(approval_policy_config)
         self.policy = MemoryPolicy(self.store, token_limit=token_limit)
         self.bootloader = CognitiveBootloader(self.scheduler)
-        self.kernel_key = self.registry.generate_kernel_key()
+        # Scheduler guarantees that the registry key exists before it creates
+        # JournalIntegrity.  Reuse that exact key; regenerating it here would
+        # make the public kernel key disagree with the audit-chain HMAC key.
+        self.kernel_key = self.registry.kernel_key
         
         # [CPOS v0.4] Node Connectivity
         self.node = NodeLink(node_id, domain)
@@ -177,10 +177,20 @@ class CPOS:
         self.policy.process_decay()
 
         # 2. AIT Firewall Output Scan (DLP 2.0 Abyss Shield)
-        # Redact any sensitive info from the result before returning to the caller
-        guarded_res = self.firewall.process_output(str(res))
-        
-        return guarded_res
+        # Preserve the scheduler API shape while filtering every string value.
+        # Stringifying the whole response breaks callers that require status/result.
+        def sanitize_output(value):
+            if isinstance(value, str):
+                return self.firewall.process_output(value)
+            if isinstance(value, dict):
+                return {key: sanitize_output(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [sanitize_output(item) for item in value]
+            if isinstance(value, tuple):
+                return tuple(sanitize_output(item) for item in value)
+            return value
+
+        return sanitize_output(res)
 
     def monitor(self):
         """[CPOS v0.7] Triggers the real-time cognitive terminal."""

@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 from cpos.kernel import CPOS
@@ -8,9 +9,8 @@ def main():
     print("   CONTEXT POINTER OS v6.1 - Energy Management  ")
     print("================================================")
     
-    workspace = "/tmp/cpos_v61"
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_")
     os.makedirs(workspace, exist_ok=True)
-    os.system(f"rm -rf {workspace}/*")
     
     # Initialize with a tight budget
     os_kernel = CPOS(workspace=workspace, token_limit=5000)

@@ -1,3 +1,4 @@
+import tempfile
 import os
 import json
 import sys
@@ -10,11 +11,7 @@ def v20_demo():
     print("   CONTEXT POINTER OS v2.0 - DEVICE DRIVERS    ")
     print("================================================")
     
-    workspace = "/tmp/cpos_v20_fixed"
-    if os.path.exists(workspace):
-        import shutil
-        shutil.rmtree(workspace)
-    os.makedirs(workspace, exist_ok=True)
+    workspace = tempfile.mkdtemp(prefix="cpos_demo_v20_")
     
     os_kernel = CPOS(workspace=workspace)
     os_kernel.acl.set_role("agent_alpha", Role.USER)
